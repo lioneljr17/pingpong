@@ -8,9 +8,12 @@ import javax.swing.*;
 public class PongGame1 {
 
 	public static void main(String[] args) {
-		GameFrame frame = new GameFrame();
-		
-
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				new GameFrame();
+			}
+		});
 	}
 
 }

@@ -9,7 +9,7 @@ public class Ball  extends Rectangle {
 	Random random;
 	int xVelocity;
 	int yVelocity;
-	int initialSpeed =  (int) .5;
+	int initialSpeed = 3;
 
 	Ball(int x, int y, int width, int height){
 		super(x,y,width,height);
@@ -36,6 +36,7 @@ public class Ball  extends Rectangle {
 
 		
 	}
+	
 	public void move () {
 		x += xVelocity;
 		y += yVelocity;
