@@ -47,6 +47,10 @@ public class GamePanel extends JPanel implements Runnable {
 	score score;
 	/** Flag indicating if the game loop is running */
 	boolean gameRunning = false;
+	/** Player 1 name */
+	String player1Name = "Player 1";
+	/** Player 2 name */
+	String player2Name = "Player 2";
 	
 	/**
 	 * Constructs the game panel and initializes game objects.
@@ -64,6 +68,17 @@ public class GamePanel extends JPanel implements Runnable {
 		
 		// Don't start thread here, wait for startGame()
 		
+	}
+	
+	/**
+	 * Sets the names for both players.
+	 * @param p1Name Name for player 1
+	 * @param p2Name Name for player 2
+	 */
+	public void setPlayerNames(String p1Name, String p2Name) {
+		this.player1Name = p1Name;
+		this.player2Name = p2Name;
+		score.setPlayerNames(p1Name, p2Name);
 	}
 	
 	/**
