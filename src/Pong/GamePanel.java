@@ -6,26 +6,52 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 
+/**
+ * Main game panel that handles gameplay, rendering, and input.
+ * Implements Runnable for the game loop thread.
+ */
 public class GamePanel extends JPanel implements Runnable {
 	
+	// Game dimensions and constants
+	/** Width of the game area */
 	static final int GAME_WIDTH = 1000;
+	/** Height of the game area (calculated as 55.555% of width for classic aspect ratio) */
 	static final int GAME_HEIGHT = (int)(GAME_WIDTH*(0.55555)) ;
+	/** Screen size dimension */
 	static final Dimension  SCREEN_SIZE = new Dimension(GAME_WIDTH,GAME_HEIGHT);
+	/** Diameter of the ball */
 	static final int BALL_DIAMETER = 20;
+	/** Width of each paddle */
 	static final int PADDLE_WIDTH = 25;
+	/** Height of each paddle */
 	static final int PADDLE_HEIGHT = 100;
+	/** Maximum score to win the game */
 	static final int MAX_SCORE = 5;
+	
+	// Game components
+	/** Thread for running the game loop */
 	Thread gameThread;
+	/** Off-screen image for double buffering */
 	Image image;
+	/** Graphics object for drawing to the off-screen image */
 	Graphics graphics;
+	/** Random number generator for ball positioning */
 	Random random;
+	/** Left paddle (player 1) */
 	Paddle paddle1;
+	/** Right paddle (player 2) */
 	Paddle paddle2;
+	/** The game ball */
 	Ball ball;
+	/** Score display and tracking */
 	score score;
+	/** Flag indicating if the game loop is running */
 	boolean gameRunning = false;
 	
-	
+	/**
+	 * Constructs the game panel and initializes game objects.
+	 * Sets up key bindings and UI properties.
+	 */
 	GamePanel(){
 		NewPaddles();
 		NewBall();
@@ -40,6 +66,9 @@ public class GamePanel extends JPanel implements Runnable {
 		
 	}
 	
+	/**
+	 * Creates a new ball at the center of the screen with random Y position.
+	 */
 	public void NewBall() {
 		random = new Random();
 		ball = new Ball ((GAME_WIDTH/2)- (BALL_DIAMETER/2),
@@ -48,6 +77,9 @@ public class GamePanel extends JPanel implements Runnable {
 		
 	}
 
+	/**
+	 * Creates new paddles positioned at the left and right sides of the screen.
+	 */
 	public void NewPaddles() {
 		paddle1 = new Paddle (0,(GAME_HEIGHT/2)-(PADDLE_HEIGHT/2),
 				PADDLE_WIDTH,PADDLE_HEIGHT,1);
@@ -55,12 +87,20 @@ public class GamePanel extends JPanel implements Runnable {
 				(PADDLE_HEIGHT/2),PADDLE_WIDTH,PADDLE_HEIGHT,2);	
 	}
 	
+	/**
+	 * Paints the game panel by calling the draw method.
+	 * @param g Graphics context for painting
+	 */
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		draw(g);
 	}
 	
+	/**
+	 * Draws all game objects (paddles, ball, score) to the screen.
+	 * @param g Graphics context for drawing
+	 */
 	public void draw(Graphics g) {
 		paddle1.draw(g);
 		paddle2.draw(g);
@@ -68,6 +108,9 @@ public class GamePanel extends JPanel implements Runnable {
 		score.draw(g);
 	}
 	
+	/**
+	 * Updates the positions of all moving game objects (paddles and ball).
+	 */
 	public void move() {
 		paddle1.move();
 		paddle2.move();
@@ -75,17 +118,20 @@ public class GamePanel extends JPanel implements Runnable {
 		
 	}
 	
+	/**
+	 * Checks for collisions between game objects and handles scoring.
+	 * Includes ball-wall collisions, ball-paddle collisions, and paddle boundary limits.
+	 */
 	public void checkcollision() {
-		// ball bouncing off top and bottom of the page
-		
+		// Ball bouncing off top and bottom walls
 		if (ball.y<= 0 ) {
 			ball.setYDirection(-ball.yVelocity);
 		}
 		if (ball.y>= GAME_HEIGHT-BALL_DIAMETER) {
 			ball.setYDirection(-ball.yVelocity);
 		}
-		// bounce of the paddle
 		
+		// Ball bouncing off paddles
 		if (ball.intersects(paddle1)) {
 			ball.xVelocity = Math.abs(ball.xVelocity);
 			ball.setXDirection(ball.xVelocity);
@@ -96,7 +142,8 @@ public class GamePanel extends JPanel implements Runnable {
 			ball.setXDirection(-ball.xVelocity);
 			ball.setYDirection(ball.yVelocity);
 		}
-		// to stop paddle at the edge of the window
+		
+		// Prevent paddles from moving outside the game area
 		if(paddle1.y<=0)
 			paddle1.y=0;
 		if (paddle1.y>= (GAME_HEIGHT-PADDLE_HEIGHT))
@@ -106,8 +153,7 @@ public class GamePanel extends JPanel implements Runnable {
 			paddle2.y=0;
 		if (paddle2.y>= (GAME_HEIGHT-PADDLE_HEIGHT))
 			paddle2.y = GAME_HEIGHT- PADDLE_HEIGHT;
-		// GIVE A PLAYER 1 POINT AND CREATES A NEW PADDLES BALL
-		
+		// Handle scoring when ball goes off screen
 		if (ball.x<=0) {
 			score.player2++;
 			NewPaddles();
@@ -130,8 +176,12 @@ public class GamePanel extends JPanel implements Runnable {
 			
 		}
 		
-	} 
+	}
 	
+	/**
+	 * Starts the game by setting the running flag and starting the game thread.
+	 * Also requests focus for keyboard input.
+	 */
 	public void startGame() {
 		gameRunning = true;
 		if(gameThread == null || !gameThread.isAlive()) {
@@ -141,12 +191,19 @@ public class GamePanel extends JPanel implements Runnable {
 		this.requestFocusInWindow();
 	}
 	
+	/**
+	 * Stops the game by clearing the running flag.
+	 */
 	public void stopGame() {
 		gameRunning = false;
 	}
 	
+	/**
+	 * Main game loop that runs at 60 FPS.
+	 * Updates game state and renders when running.
+	 */
 	public void run() {
-		// game loop
+		// Game loop timing variables
 		long lastTime = System.nanoTime();
 		double amountOfTicks = 60.0;
 		double ns = 1000000000 / amountOfTicks;
@@ -156,11 +213,13 @@ public class GamePanel extends JPanel implements Runnable {
 			delta += (now - lastTime) / ns;
 			lastTime = now;
 			if(delta >= 1) {
+				// Update game state and render
 				move();
 				checkcollision();
 				repaint();
 				delta--;       
 			} else {
+				// Sleep to prevent busy waiting
 				try {
 					Thread.sleep(1);
 				} catch (InterruptedException e) {
@@ -172,10 +231,15 @@ public class GamePanel extends JPanel implements Runnable {
 		
 	}
 	
+	/**
+	 * Sets up keyboard input mappings for paddle control.
+	 * W/S keys control left paddle, Up/Down arrows control right paddle.
+	 */
 	private void setupKeyBindings() {
 		InputMap im = this.getInputMap(WHEN_IN_FOCUSED_WINDOW);
 		ActionMap am = this.getActionMap();
 
+		// Map key presses and releases to action names
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0, false), "p1UpPress");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0, true), "p1UpRelease");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0, false), "p1DownPress");
@@ -185,6 +249,7 @@ public class GamePanel extends JPanel implements Runnable {
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, false), "p2DownPress");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), "p2DownRelease");
 
+		// Define actions for each key event
 		am.put("p1UpPress", new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
