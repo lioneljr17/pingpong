@@ -47,6 +47,8 @@ public class GamePanel extends JPanel implements Runnable {
 	score score;
 	/** Flag indicating if the game loop is running */
 	boolean gameRunning = false;
+	/** Flag indicating if game is in single-player mode (true) or two-player mode (false) */
+	boolean singlePlayerMode = true;
 	/** Player 1 name */
 	String player1Name = "Player 1";
 	/** Player 2 name */
@@ -79,6 +81,14 @@ public class GamePanel extends JPanel implements Runnable {
 		this.player1Name = p1Name;
 		this.player2Name = p2Name;
 		score.setPlayerNames(p1Name, p2Name);
+	}
+	
+	/**
+	 * Sets the game mode.
+	 * @param singlePlayer true for single-player mode (vs computer), false for two-player mode
+	 */
+	public void setGameMode(boolean singlePlayer) {
+		this.singlePlayerMode = singlePlayer;
 	}
 	
 	/**
@@ -125,9 +135,26 @@ public class GamePanel extends JPanel implements Runnable {
 	
 	/**
 	 * Updates the positions of all moving game objects (paddles and ball).
+	 * In single-player mode, implements AI control for the right paddle.
 	 */
 	public void move() {
 		paddle1.move();
+		
+		if (singlePlayerMode) {
+			// AI control for right paddle in single-player mode
+			int paddleCenter = paddle2.y + PADDLE_HEIGHT / 2;
+			int ballCenter = ball.y + BALL_DIAMETER / 2;
+			
+			// Simple AI: move paddle towards ball's Y position
+			if (ballCenter < paddleCenter - 10) {
+				paddle2.setYDirection(-paddle2.speed);
+			} else if (ballCenter > paddleCenter + 10) {
+				paddle2.setYDirection(paddle2.speed);
+			} else {
+				paddle2.setYDirection(0);
+			}
+		}
+		
 		paddle2.move();
 		ball.move();
 		
